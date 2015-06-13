@@ -18,3 +18,10 @@ class RubinowyStan
     @logger = Logger.new(STDOUT)
   end
 end
+
+class Event
+  def initialize(event)
+    @event = event
+  end
+  attr_accessor :event
+end

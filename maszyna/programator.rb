@@ -23,10 +23,13 @@ class Programator < RubinowyStan
   end
 
   def initialize
-    @panel = PanelSterowania.new(self)
+    @panel = PanelSterowania.new self
     @drzwi = Drzwi.new
     @beben = Beben.new
-    @dozowniki = Dozowniki.new
+    @dozowniki = Dozowniki.new self
+    @regulator_wody = RegulatorWody.new self
+
+    @watki = []
     super()
   end
 
@@ -38,6 +41,9 @@ class Programator < RubinowyStan
   attr_reader :beben
   attr_reader :dozowniki
   attr_reader :panel
+  attr_reader :regulator_wody
+
+  attr_accessor :watki
 end
 
 class PanelSterowania
@@ -96,21 +102,101 @@ class Beben
   def masa
     rand(6)
   end
+
+  def initialize
+    @poziom_wody = 0
+  end
+
+  attr_accessor :poziom_wody
 end
 
-class Dozowniki
+class Dozowniki < RubinowyStan
+  def initialize(pralka)
+    @pralka = pralka
+    super()
+  end
+
   def dosc?
     rand = rand 10
-    rand > 2
+    rand > 0
   end
+
+  def dozuj(gram, callback)
+    # @event = "dozuje #{gram} gram proszku"
+    # ja = self
+    @pralka.watki << Thread.new {
+      log Event.new "dozuje #{gram} gram proszku <"
+      sleep(3)
+      log Event.new 'nasypane <'
+      callback.fire_state_event(:nastepny)
+    }
+  end
+
+  attr_reader :event
+end
+
+class RegulatorWody < RubinowyStan
+  state_machine :initial => :wylaczony do
+    before_transition :do => :log
+    after_failure :do => :fail
+
+    after_transition any => :zalaczony, :do => :otworz_zawor
+
+    event :zalacz do
+      transition :wylaczony => :zalaczony
+    end
+    event :wylacz do
+      transition :zalaczony => :wylaczony
+    end
+  end
+
+  def otworz_zawor
+
+    log Event.new "obenie w pralce: #{@pralka.beben.poziom_wody} litrow wody <"
+    until dosc?
+      @pralka.beben.poziom_wody += 1
+      sleep(0.1)
+      putc '.'
+    end
+    puts ''
+    log Event.new "obenie w pralce: #{@pralka.beben.poziom_wody} litrow wody <"
+
+    fire_state_event :wylacz
+  end
+
+  def dosc?
+    method(@czujki[@poziom_wody]).call
+  end
+
+  def czujka1
+    @pralka.beben.poziom_wody > 35;
+  end
+
+  def czujka2
+    @pralka.beben.poziom_wody > 65;
+  end
+
+  def czujka3
+    @pralka.beben.poziom_wody > 95;
+  end
+
+  def initialize(pralka)
+    super()
+    @pralka = pralka
+    @czujki = [:czujka1, :czujka2, :czujka3]
+  end
+
+  attr_writer :poziom_wody
 end
 
 pralka = Programator.new
+
 pralka.panel.pauza.fire_state_event :przelacz
 pralka.fire_state_event :zalacz
 pralka.fire_state_event :zalacz
 pralka.fire_state_event :start
 
+pralka.watki.each { |w| w.join }
 
 # p(/abc/ =~ "xabc")
 #
