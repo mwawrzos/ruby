@@ -6,7 +6,7 @@ require '../maszyna/programy'
 class Programator < RubinowyStan
   state_machine :initial => :wylaczony do
     before_transition :do => :log
-    after_failure :do => :fail
+    after_failure     :do => :fail
     before_transition :zalaczony => :uruchomiony, :do => :uruchom
 
     event :zalacz do
@@ -28,6 +28,7 @@ class Programator < RubinowyStan
     @beben = Beben.new
     @dozowniki = Dozowniki.new self
     @regulator_wody = RegulatorWody.new self
+    @kontroler_silnika = KontrolerSilnika.new self
 
     @watki = []
     super()
@@ -42,6 +43,7 @@ class Programator < RubinowyStan
   attr_reader :dozowniki
   attr_reader :panel
   attr_reader :regulator_wody
+  attr_reader :kontroler_silnika
 
   attr_accessor :watki
 end
@@ -161,7 +163,7 @@ class RegulatorWody < RubinowyStan
     puts ''
     log Event.new "obenie w pralce: #{@pralka.beben.poziom_wody} litrow wody <"
 
-    fire_state_event :wylacz
+    wylacz
   end
 
   def dosc?
@@ -189,12 +191,94 @@ class RegulatorWody < RubinowyStan
   attr_writer :poziom_wody
 end
 
-pralka = Programator.new
+class KontrolerSilnika < RubinowyStan
+  state_machine :initial => :zatrzymany do
+    before_transition :do => :log
+    after_failure     :do => :fail
 
-pralka.panel.pauza.fire_state_event :przelacz
-pralka.fire_state_event :zalacz
-pralka.fire_state_event :zalacz
-pralka.fire_state_event :start
+    after_transition any => :kreci, :do => :krecenie_
+    after_transition :kreci => any, :do => :nie_krec
+
+    event :krec do
+      transition any => :kreci
+    end
+    event :wiruj do
+      transition any => :wiruje
+    end
+    event :stop do
+      transition any => :zatrzymany
+    end
+  end
+
+  def krecenie_
+    @watek = Thread.new {
+      start_krecenie
+      begin
+        w_lewo_krecenie
+        sleep 3
+        czekaj_krecenie
+        sleep 3
+        w_prawo_krecenie
+        sleep 3
+        czekaj_krecenie
+        sleep 3
+      end until krecenie_zatrzymany?
+    }
+    @pralka.watki << @watek
+  end
+
+  def nie_krec
+    @watek.kill
+    stop_krecenie
+  end
+
+  state_machine :krecenie, :initial => :zatrzymany, :namespace => 'krecenie' do
+    before_transition :do => :log
+    after_failure     :do => :fail
+
+    def log
+      super.log Event.new krecenie_name
+    end
+
+    event :w_lewo do
+      transition :czeka => :kreci_w_lewo
+    end
+    event :w_prawo do
+      transition :czeka => :kreci_w_prawo
+    end
+    event :czekaj do
+      transition [:kreci_w_lewo, :kreci_w_prawo] => :czeka
+    end
+    event :stop do
+      transition any => :zatrzymany
+    end
+    event :start do
+      transition :zatrzymany => :kreci_w_lewo
+    end
+  end
+
+  def initialize pralka
+    super()
+    @pralka = pralka
+    p @pralka
+  end
+end
+
+pralka = Programator.new
+# konroler = KontrolerSilnika.new pralka
+
+# puts konroler.start_krecenie
+# puts konroler.czekaj_krecenie
+# puts konroler.krecenie_name
+# puts konroler.krecenie_czeka?
+# puts konroler.krecenie_zatrzymany?
+# p(konroler)
+
+
+pralka.panel.pauza.przelacz
+pralka.zalacz
+pralka.zalacz
+pralka.start
 
 pralka.watki.each { |w| w.join }
 

@@ -60,10 +60,10 @@ class Cykl < RubinowyStan
 
     after_transition any => :dozowanie_p , :do => :proszki
     after_transition any => :dozowanie_w , :do => :woda
-    after_transition any => :pranie      , :do => :pranie
-    after_transition any => :plukanie    , :do => :plukanie
-    after_transition any => :odwirowanie , :do => :odwirowanie
-    after_transition any => :koniec      , :do => :koniec
+    after_transition any => :pranie      , :do => :pranie_
+    after_transition any => :plukanie    , :do => :plukanie_
+    after_transition any => :odwirowanie , :do => :odwirowanie_
+    after_transition any => :koniec      , :do => :koniec_
 
     event :nastepny do
       transition :oczekiwanie => :dozowanie_p
@@ -84,14 +84,33 @@ class Cykl < RubinowyStan
     regulator_wody.poziom_wody = 1
 
     @pralka.watki << Thread.new {
+      wilgoc = 1
       until regulator_wody.dosc?
-        regulator_wody.fire_state_event :zalacz
+        regulator_wody.zalacz
+        @pralka.kontroler_silnika.krec
+        sleep 5.5
+        @pralka.kontroler_silnika.stop
+        if rand(10) > wilgoc
+          wessane = (1 - wilgoc) * rand(@proszek / 5)
+          log Event.new "pranie wsyslo #{wessane} litrow wody"
+          @pralka.beben.poziom_wody -= wessane
+          ++wilgoc
+        end
       end
+      nastepny
     }
   end
 
-  def pranie
-    puts 'pranie'
+  def pranie_
+    @pralka.kontroler_silnika.krec
+    sleep 10
+    @pralka.kontroler_silnika.stop
+    nastepny
+  end
+
+  def plukanie_
+    @pralka.beben.poziom_wody = 0
+    @pralka.regulator_wody.zalacz
   end
 
   def initialize(pralka)
@@ -113,7 +132,7 @@ class Bawelna < Program
   def pranie1
     @cykl.proszek = @masa * 15 #gram -> na opakowaniu proszku: 75 gr / 4,5 kg prania
     @cykl.woda    = 2
-    @cykl.fire_state_event :nastepny
+    @cykl.nastepny
   end
 end
 
