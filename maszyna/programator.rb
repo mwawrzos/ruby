@@ -38,6 +38,17 @@ class Programator < RubinowyStan
     @panel.program(0).fire_state_event(:nastepny)
   end
 
+  def wlacz_pompe_odsrodkowa
+    log Event.new "odpompowuje #{@beben.poziom_wody} litrow wody"
+    while @beben.poziom_wody > 0
+      @beben.poziom_wody -= 1
+      putc '.'
+      sleep 0.1
+    end
+    puts ''
+    @beben.poziom_wody = 0
+  end
+
   attr_reader :drzwi
   attr_reader :beben
   attr_reader :dozowniki
@@ -214,13 +225,13 @@ class KontrolerSilnika < RubinowyStan
     @watek = Thread.new {
       start_krecenie
       begin
-        w_lewo_krecenie
-        sleep 3
         czekaj_krecenie
         sleep 3
         w_prawo_krecenie
         sleep 3
         czekaj_krecenie
+        sleep 3
+        w_lewo_krecenie
         sleep 3
       end until krecenie_zatrzymany?
     }
