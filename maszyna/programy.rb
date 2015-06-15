@@ -10,14 +10,14 @@ class Program < RubinowyStan
     after_transition :oczekiwanie => :odczyty     , :do => :odczytaj
     after_transition :odczyty     => :pranie1     , :do => :pranie1
     after_transition any          => :pranie2     , :do => :pranie2
-    after_transition any          => :zakonczenie , :do => :zakonczenie
+    after_transition any          => :oczekiwanie , :do => :zakonczenie_
 
     event :nastepny do
       transition :oczekiwanie => :odczyty , :if => :warunki
       transition :odczyty => :pranie1
       transition :pranie1 => :pranie2     , :if => :tryb_rubinowy?
-      transition :pranie1 => :zakonczenie
-      transition :pranie2 => :zakonczenie
+      transition [:pranie1, :pranie2] => :oczekiwanie
+      # transition :zakonczenie => :oczekiwanie
     end
   end
 
@@ -25,6 +25,7 @@ class Program < RubinowyStan
     @pralka = pralka
     @cykl   = Cykl.new pralka
     super()
+    puts state
   end
 
   def warunki
@@ -35,7 +36,7 @@ class Program < RubinowyStan
     end
     dosc = @pralka.dozowniki.dosc?
     @logger.check("Detergentow jest #{dosc ? 'dosc' : 'za malo'}")
-    if !dosc
+    unless dosc
       return false
     end
 
@@ -49,7 +50,7 @@ class Program < RubinowyStan
 
   def odczytaj
     @masa = @pralka.beben.masa
-    fire_state_event(:nastepny)
+    nastepny
   end
 end
 
@@ -107,9 +108,11 @@ class Cykl < RubinowyStan
 
   def pranie_
     log Event.new 'pranie'
+    @pralka.kontroler_temperatury.zalacz
     @pralka.kontroler_silnika.krec
     sleep 10
     @pralka.kontroler_silnika.stop
+    @pralka.kontroler_temperatury.wylacz
     nastepny
   end
 
@@ -137,6 +140,7 @@ class Cykl < RubinowyStan
     @pralka.kontroler_silnika.wiruj
     sleep 6.78
     @pralka.kontroler_silnika.stop
+    nastepny
   end
 
   def initialize(pralka)
@@ -145,8 +149,7 @@ class Cykl < RubinowyStan
   end
 
   def koniec_
-    puts 'koniec!!!!!!!!!!!!!!!!!!!!'
-    @pralka.drzwi.odblokuj
+    @callback.nastepny
   end
 
 
@@ -157,14 +160,26 @@ class Cykl < RubinowyStan
   end
 
   attr_writer :proszek
-  attr_writer :woda    # pralka ma 3 czujniki na ró¿ych wysokoœciach; tu usatawiamy, który ma zatrzymaæ dozowanie wody
+  attr_writer :woda    # pralka ma 3 czujniki na rï¿½ych wysokoï¿½ciach; tu usatawiamy, ktï¿½ry ma zatrzymaï¿½ dozowanie wody
+
+  attr_writer :callback
 end
 
 class Bawelna < Program
   def pranie1
     @cykl.proszek = @masa * 15 #gram -> na opakowaniu proszku: 75 gr / 4,5 kg prania
     @cykl.woda    = 2
+    @cykl.callback = self
     @cykl.nastepny
+   end
+
+  def pranie2
+    @cykl.proszek = @masa * 15 * @pralka.filtry.zabrudzenie
+    @cykl.nastepny
+  end
+
+  def zakonczenie_
+    @pralka.drzwi.odblokuj
   end
 end
 
@@ -174,6 +189,15 @@ class Sportowe < Program
     @cykl.woda    = 3
     @cykl.nastepny
   end
+
+  def pranie2
+    @cykl.proszek = @masa * 15 * @pralka.filtry.zabrudzenie
+    @cykl.nastepny
+  end
+
+  def zakonczenie_
+    @pralka.drzwi.odblokuj
+  end
 end
 
 class Delikatne < Program
@@ -181,5 +205,14 @@ class Delikatne < Program
     @cykl.proszek = @masa * 5
     @cykl.woda    = 2
     @cykl.nastepny
+  end
+
+  def pranie2
+    @cykl.proszek = @masa * 15 * @pralka.filtry.zabrudzenie
+    @cykl.nastepny
+  end
+
+  def zakonczenie_
+    @pralka.drzwi.odblokuj
   end
 end

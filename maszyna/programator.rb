@@ -3,6 +3,12 @@ require 'state_machine'
 require '../maszyna/utils'
 require '../maszyna/programy'
 
+class Filtry
+  def zabrudzenie
+    rand(100)/100
+  end
+end
+
 class Programator < RubinowyStan
   state_machine :initial => :wylaczony do
     before_transition :do => :log
@@ -29,13 +35,17 @@ class Programator < RubinowyStan
     @dozowniki = Dozowniki.new self
     @regulator_wody = RegulatorWody.new self
     @kontroler_silnika = KontrolerSilnika.new self
+    @filtry = Filtry.new
+    @wirowanie = Pokretelko.new { rand(800) + 400 }
+    @temperatura = Pokretelko.new { rand(60) + 30 }
+    @kontroler_temperatury = KontrolerTemperatury.new self
 
     @watki = []
     super()
   end
 
   def uruchom
-    @panel.program(0).fire_state_event(:nastepny)
+    @panel.program(0).nastepny
   end
 
   def wlacz_pompe_odsrodkowa
@@ -55,6 +65,10 @@ class Programator < RubinowyStan
   attr_reader :panel
   attr_reader :regulator_wody
   attr_reader :kontroler_silnika
+  attr_reader :filtry
+  attr_reader :wirowanie
+  attr_reader :temperatura
+  attr_reader :kontroler_temperatury
 
   attr_accessor :watki
 end
@@ -88,6 +102,17 @@ class Guzik < RubinowyStan
     event :przelacz do
       transition :wylaczony => :zalaczony, :zalaczony => :wylaczony
     end
+  end
+end
+
+class Pokretelko < RubinowyStan
+  def wartosc
+    @wartosc.call
+  end
+
+  def initialize
+    @wartosc = lambda { yield }
+    super()
   end
 end
 
@@ -209,6 +234,7 @@ class KontrolerSilnika < RubinowyStan
 
     after_transition any => :kreci, :do => :krecenie_
     after_transition :kreci => any, :do => :nie_krec
+    after_transition any => :wiruje, :do => :wirowanie_
 
     event :krec do
       transition any => :kreci
@@ -243,13 +269,17 @@ class KontrolerSilnika < RubinowyStan
     stop_krecenie
   end
 
+  def wirowanie_
+    log(Event.new "wiruje #{@pralka.wirowanie} obr/min")
+  end
+
   state_machine :krecenie, :initial => :zatrzymany, :namespace => 'krecenie' do
     before_transition :do => :log
     after_failure     :do => :fail
 
-    def log
-      super.log Event.new krecenie_name
-    end
+    # def log
+    #   super.log Event.new krecenie_name
+    # end
 
     event :w_lewo do
       transition :czeka => :kreci_w_lewo
@@ -274,8 +304,54 @@ class KontrolerSilnika < RubinowyStan
     p @pralka
   end
 end
+class KontrolerTemperatury < RubinowyStan
+  state_machine :initial => :wylaczony do
+    before_transition :do => :log
+    after_failure     :do => :fail
 
-pralka = Programator.new
+    event :zalacz do
+      transition :wylaczony => :zalaczony
+    end
+    event :wylacz do
+      transition :zalaczony => :wylaczony
+    end
+  end
+
+  def initialize pralka
+    @pralka = pralka
+    @temperatura = 20.0
+    @temperatura_zadana = @pralka.temperatura.wartosc
+    Thread.new {
+      loop {
+        until @temperatura < 20
+          @temperatura -= rand 5
+          sleep 0.7
+        end
+      }
+    }.priority = -10
+
+    Thread.new {
+      loop {
+        # puts zalaczony? , @temperatura , @temperatura_zadana
+        if zalaczony?
+          log Event.new "grzeje (obecnie #{@temperatura}*C"
+          until @temperatura > @temperatura_zadana or wylaczony?
+            @temperatura += 10
+            putc '+'
+            sleep 0.1
+          end
+          log Event.new 'ugrzane'
+        end
+        sleep 1
+      }
+    }
+
+    super()
+  end
+
+  attr_writer :temperatura_zadana
+end
+
 # konroler = KontrolerSilnika.new pralka
 
 # puts konroler.start_krecenie
@@ -286,7 +362,9 @@ pralka = Programator.new
 # p(konroler)
 
 
+pralka = Programator.new
 pralka.panel.pauza.przelacz
+pralka.panel.tryb_rubinowy.przelacz
 pralka.zalacz
 pralka.zalacz
 pralka.start
