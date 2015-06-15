@@ -1,6 +1,6 @@
 require 'state_machine'
 
-require '../maszyna/utils'
+require 'utils'
 
 class Program < RubinowyStan
   state_machine :initial => :oczekiwanie do

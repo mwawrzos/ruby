@@ -1,3 +1,9 @@
+Shoes.setup do
+  gem 'state_machine'
+end
+
+require 'programator'
+require 'ekstra'
 
 # tutaj stworzona klasa, ale mozna ja importowac z innego pliku czyli np. te nasze
 class NowaKlasa
@@ -38,6 +44,8 @@ Shoes.app(title: "RUBIN", width: 900, height: 700, resizable: false) do
   # !!!
   # tutaj tworze obiekt nowej klasy (ew. tej zaimportowanej z innego pliku) i pozniej wywoluje jej metody
   @obj = NowaKlasa.new
+  @ekstra_klasa = Ekstra.new
+  @pralka = Programator.new
 
   background gainsboro
 
@@ -58,9 +66,11 @@ Shoes.app(title: "RUBIN", width: 900, height: 700, resizable: false) do
       flow do
         @startBtn = button "Start", :width => 100 do
           alert @obj.funkcjaStart
+          alert @ekstra_klasa.okon
         end
         @pauseBtn = button "Pauza" do
-          alert @obj.funkcjaPause
+          # alert @obj.funkcjaPause
+          alert @pralka.state
         end
         @stopBtn  = button "Stop" do
           alert @obj.funkcjaStop

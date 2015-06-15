@@ -1,7 +1,7 @@
 require 'state_machine'
 
-require '../maszyna/utils'
-require '../maszyna/programy'
+require 'utils'
+require 'programy'
 
 class Filtry
   def zabrudzenie
