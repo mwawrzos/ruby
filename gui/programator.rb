@@ -362,14 +362,14 @@ end
 # p(konroler)
 
 
-pralka = Programator.new
-pralka.panel.pauza.przelacz
-pralka.panel.tryb_rubinowy.przelacz
-pralka.zalacz
-pralka.zalacz
-pralka.start
-
-pralka.watki.each { |w| w.join }
+# pralka = Programator.new
+# pralka.panel.pauza.przelacz
+# pralka.panel.tryb_rubinowy.przelacz
+# pralka.zalacz
+# pralka.zalacz
+# pralka.start
+#
+# pralka.watki.each { |w| w.join }
 
 # p(/abc/ =~ "xabc")
 #
