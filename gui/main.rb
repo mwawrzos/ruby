@@ -82,12 +82,8 @@ Shoes.app(title: "RUBIN", width: 900, height: 720, resizable: false) do
       end
       stack :height => 210, :width => 510, :margin => 10, :margin_left => 0 do
         border steelblue, :strokewidth => 2, :curve => 8
-        # para "Logi"
         @logWindow = stack
         @lacznik.initLogWindow @logWindow
-        # height: "fixed", scroll: true do
-        # end
-        # @lacznik.initLogWindow @logWindow
       end
     end
   end
