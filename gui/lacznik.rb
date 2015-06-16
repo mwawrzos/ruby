@@ -65,8 +65,8 @@ class Lacznik
 
   def niesamowitaFunkcja
     @logStack.app do
-      alert yield
-      @logi.append(inscription strong yield)
+      # alert yield
+      @logi.append{inscription strong yield}
     end
   end
 end
