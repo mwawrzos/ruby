@@ -55,8 +55,7 @@ class Lacznik
         para "Logi"
       end
 
-      @logi = stack
-      @logi.style(background: black, stroke: white, scroll: true, :height => "fix")
+      @logi = stack(scroll: true, :height => 220)
       @startBtn.click {
         # niesamowitaFunkcja { funkcja }
         @logi.append(inscription strong funkcja)
@@ -65,8 +64,10 @@ class Lacznik
   end
 
   def niesamowitaFunkcja
-    alert yield
-    @logi.append(inscription strong yield)
+    @logStack.app do
+      alert yield
+      @logi.append(inscription strong yield)
+    end
   end
 end
 
