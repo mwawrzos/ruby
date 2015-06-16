@@ -8,14 +8,17 @@ end
 
 class RubinowyStan
   def log(akcja)
+    alert funkcja
     @logger.info("#{akcja.event} #{self.class}")
+    @bambam.call @logi.string
   end
   def fail(akcja)
     @logger.error("Nie mozna wykonac akcji #{akcja.event} gdy #{self.class} #{state}")
   end
 
   def initialize
-    @logger = Logger.new(STDOUT)
+    @logi = StringIO.new
+    @logger = Logger.new @logi
   end
 end
 

@@ -4,8 +4,8 @@ require 'lacznik'
 
 Shoes.app(title: "RUBIN", width: 900, height: 720, resizable: false) do
   @obj = UstawieniaGUI.new
-  @programator = Programator.new
   @lacznik = Lacznik.new
+  @programator = Programator.new (lambda { |str| @lacznik.niesamowitaFunkcja { str } })
 
   background gainsboro
 

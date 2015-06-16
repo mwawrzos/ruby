@@ -1,6 +1,6 @@
 require 'programator'
 class Lacznik
-  @programator = Programator.new
+  # @programator = Programator.new (lambda { |str| niesamowitaFunkcja str })
 
   def initButtonFlow(buttonFlow)
     @buttonFlow = buttonFlow
@@ -12,7 +12,8 @@ class Lacznik
           alert @programator.state
         end
         @stopBtn = button "Stop" do
-          alert @obj.funkcjaStop
+          @programator.zalacz
+          @programator.start
         end
         @offBtn = button "Wylacz" do
           ask_open_file
@@ -57,11 +58,16 @@ class Lacznik
       @logi = stack
       @logi.style(background: black, stroke: white, scroll: true, :height => "fix")
       @startBtn.click {
+        # niesamowitaFunkcja { funkcja }
         @logi.append(inscription strong funkcja)
       }
     end
   end
 
+  def niesamowitaFunkcja
+    alert yield
+    @logi.append(inscription strong yield)
+  end
 end
 
 def funkcja

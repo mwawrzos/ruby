@@ -28,7 +28,7 @@ class Programator < RubinowyStan
     end
   end
 
-  def initialize
+  def initialize lam
     @panel = PanelSterowania.new self
     @drzwi = Drzwi.new
     @beben = Beben.new
@@ -39,6 +39,8 @@ class Programator < RubinowyStan
     @wirowanie = Pokretelko.new { rand(800) + 400 }
     @temperatura = Pokretelko.new { rand(60) + 30 }
     @kontroler_temperatury = KontrolerTemperatury.new self
+
+    @bambam = lam
 
     @watki = []
     super()
