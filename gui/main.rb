@@ -4,8 +4,8 @@ require 'lacznik'
 
 Shoes.app(title: "RUBIN", width: 900, height: 720, resizable: false) do
   @obj = UstawieniaGUI.new
-  @lacznik = Lacznik.new
   @programator = Programator.new
+  @lacznik = Lacznik.new(@programator)
   $log_handler = lambda { |str| @lacznik.niesamowitaFunkcja { str } }
 
   background gainsboro
@@ -37,7 +37,6 @@ Shoes.app(title: "RUBIN", width: 900, height: 720, resizable: false) do
         end
         @parametersWindow = stack
         @lacznik.initParameters @parametersWindow
-
       end
     end
     stack :width => -320, :margin => 10 do
@@ -47,38 +46,45 @@ Shoes.app(title: "RUBIN", width: 900, height: 720, resizable: false) do
           image "pics/preferences72.png"
           para "Ustawienia"
           para "Tryb pracy"
-          flow :margin_left => 10  do
-            @obj.listOfPrograms.map! do |program|
-              @p = radio :washingType
+          @programFlow = flow :margin_left => 10  do
+            @listOfPrograms = @obj.listOfPrograms.map! do |program|
+              p = radio :washingType
               inscription program
+              [p, program]
             end
+            @lacznik.setProgram(@listOfPrograms)
           end
           para "Temperatura"
           flow :margin_left => 10  do
-            @obj.listOfTemperature.map! do |temperature|
-              @t = radio :temperature
+            @listOfTemperature = @obj.listOfTemperature.map! do |temperature|
+              t = radio :temperature
               inscription temperature
+              [t, temperature]
             end
+            @lacznik.setTemp(@listOfTemperature)
           end
           para "Liczba obrotow"
           flow :margin_left => 10 do
-            @obj.listTurnOver.map! do |turnover|
-              @o = radio :turnover
+           @listOfTurnover = @obj.listTurnOver.map! do |turnover|
+              o = radio :turnover
               inscription turnover
+              [o, turnover]
             end
+            @lacznik.setTurnOver(@listOfTurnover)
           end
-
         end
         stack :width => -280 do
           border tomato, :strokewidth => 2, :curve => 8
           image "pics/preferences.png"
           para "Dodatkowe ustawienia"
 
-          @obj.listExtraOptions.map! do |option|
-            @op = flow {
-              check; inscription option
+          @listExtraOpt = @obj.listExtraOptions.map do |option|
+            op = flow {
+              @c = check; inscription option
             }
+            [@c, option]
           end
+          @lacznik.setExtraOpt(@listExtraOpt)
         end
       end
       stack :height => 210, :width => 510, :margin => 10, :margin_left => 0 do
