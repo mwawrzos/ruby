@@ -1,15 +1,16 @@
 require 'programator'
 class Lacznik
   # @programator = Programator.new (lambda { |str| niesamowitaFunkcja str })
-  @temp = 0
-  @turnover = "brak"
 
+
+  def initialize(programator)
+    @programator = programator
+  end
   def initButtonFlow(buttonFlow)
     @buttonFlow = buttonFlow
     @buttonFlow.app do
       @flowS = flow do
         @startBtn = button "Start", :width => 100 do
-          # alert "Wybrano" << p.to_s
         end
         @pauseBtn = button "Pauza" do
           alert @programator.state
@@ -33,21 +34,45 @@ class Lacznik
 
       flow :margin_left => 10 do
         inscription "Poziom wody"
-        @poziom_wody = para strong "10l"
+        @poziom_wody = para strong"czekam..."
       end
       flow :margin_left => 10 do
         inscription "Proszek"
-        @proszek = para strong "45g"
+        @proszek = para strong "czekam..."
       end
       flow :margin_left => 10 do
         inscription "Plyn do plukania"
-        @plyn = para strong "20ml"
+        @plyn = para strong "czekam..."
       end
       flow :margin_left => 10 do
         inscription "Waga prania"
-        @waga_prania = para strong "5kg"
+        @waga_prania = para strong "czekam..."
       end
     end
+  end
+
+  def changeWaterLvl(lvl)
+    @paramStack.app do
+      # @poziom_wody.text = lvl.to_s
+      @poziom_wody.replace(strong(lvl.to_s))
+    end
+  end
+
+  def changeDetergentLvl(lvl)
+    @paramStack.app do
+      # @proszek = lvl.to_s
+      @proszek.replace(strong(lvl.to_s))
+    end
+  end
+
+  def changeSoftenerLvl(lvl)
+    # @plyn = lvl.to_s
+    @plyn.replace(strong(lvl.to_s))
+  end
+
+  def changeWeightLvl(lvl)
+    # @waga_prania = lvl.to_s
+    @waga.replace(strong(lvl.to_s))
   end
 
   def initLogWindow(logStack)
@@ -69,7 +94,6 @@ class Lacznik
           l.compact!
         }
         alert "Temperatura : " << resultList[2].to_s << " Obroty : " << resultList[1].to_s << " Type: " << resultList[0].to_s << "Dodatkowe: " << resultList[3].to_s
-
       }
 
         # niesamowitaFunkcja { funkcja }
