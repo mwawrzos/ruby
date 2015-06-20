@@ -1,13 +1,16 @@
 require 'programator'
 class Lacznik
   # @programator = Programator.new (lambda { |str| niesamowitaFunkcja str })
+  @temp = 0
+  @turnover = "brak"
 
   def initButtonFlow(buttonFlow)
     @buttonFlow = buttonFlow
-
     @buttonFlow.app do
       @flowS = flow do
-        @startBtn = button "Start", :width => 100
+        @startBtn = button "Start", :width => 100 do
+          # alert "Wybrano" << p.to_s
+        end
         @pauseBtn = button "Pauza" do
           alert @programator.state
         end
@@ -32,7 +35,7 @@ class Lacznik
         inscription "Poziom wody"
         @poziom_wody = para strong "10l"
       end
-      flow :margin_left =>10 do
+      flow :margin_left => 10 do
         inscription "Proszek"
         @proszek = para strong "45g"
       end
@@ -48,25 +51,53 @@ class Lacznik
   end
 
   def initLogWindow(logStack)
+    listOfLists = [@programs, @turnoverlist, @templist, @options]
     @logStack = logStack
     @logStack.app do
       flow do
         image "pics/logi.png"
         para "Logi"
       end
-
-      @logi = stack(scroll: true, :height => 220)
       @startBtn.click {
-        # niesamowitaFunkcja { funkcja }
-        @logi.append(inscription strong funkcja)
+        # jesli potrzeba mozna zmienic na zmienna obiektu - dodac "@"
+        resultList = listOfLists.map{|list|
+          l = list.map{ |(elemView, elem) |
+            if(elemView.checked?)
+             elem
+            end
+          }
+          l.compact!
+        }
+        alert "Temperatura : " << resultList[2].to_s << " Obroty : " << resultList[1].to_s << " Type: " << resultList[0].to_s << "Dodatkowe: " << resultList[3].to_s
+
       }
+
+        # niesamowitaFunkcja { funkcja }
+        # @logi.append(inscription strong funkcja
+      @logi = stack(scroll: true, :height => 130)
     end
+  end
+
+  def setTemp(temp)
+    @templist = temp
+  end
+
+  def setProgram(programs)
+    @programs = programs
+  end
+
+  def setTurnOver(turnover)
+    @turnoverlist = turnover
+  end
+
+  def setExtraOpt(options)
+    @options = options
   end
 
   def niesamowitaFunkcja
     @logStack.app do
       # alert yield
-      @logi.append{inscription strong yield}
+      @logi.append { inscription strong yield }
     end
   end
 end
