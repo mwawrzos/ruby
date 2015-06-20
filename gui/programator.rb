@@ -28,10 +28,10 @@ class Programator < RubinowyStan
     end
   end
 
-  def initialize
+  def initialize lacznik
     @panel = PanelSterowania.new self
     @drzwi = Drzwi.new
-    @beben = Beben.new
+    @beben = Beben.new self
     @dozowniki = Dozowniki.new self
     @regulator_wody = RegulatorWody.new self
     @kontroler_silnika = KontrolerSilnika.new self
@@ -39,6 +39,7 @@ class Programator < RubinowyStan
     @wirowanie = Pokretelko.new { rand(800) + 400 }
     @temperatura = Pokretelko.new { rand(60) + 30 }
     @kontroler_temperatury = KontrolerTemperatury.new self
+    @lacznik = lacznik
 
     @watki = []
     super()
@@ -69,6 +70,7 @@ class Programator < RubinowyStan
   attr_reader :wirowanie
   attr_reader :temperatura
   attr_reader :kontroler_temperatury
+  attr_reader :lacznik
 
   attr_accessor :watki
 end
@@ -165,11 +167,18 @@ class Beben
     rand(6)
   end
 
-  def initialize
+  def initialize pralka
     @poziom_wody = 0
+    @pralka = pralka
   end
 
-  attr_accessor :poziom_wody
+  def poziom_wody= poziom
+    @poziom_wody = poziom
+    @pralka.lacznik.changeWaterLvl poziom
+  end
+  def poziom_wody
+    @poziom_wody
+  end
 end
 
 class Dozowniki < RubinowyStan
