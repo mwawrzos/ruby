@@ -79,7 +79,16 @@ class PanelSterowania
     @programy = [Bawelna, Sportowe, Delikatne].map { |c| c.new(pralka)}
     @tryb_rubinowy   = Guzik.new
     @czy_napewno_nie = Guzik.new
-    @pauza           = Guzik.new
+    @pauza           = Guzik.new { |zalaczony|
+      metoda = zalaczony ? :lock : :unlock
+
+      @programy.each { |p|
+        unless p.oczekiwanie?
+          p.method(metoda).call
+        end
+      }
+      pralka.regulator_wody.pauza.method(metoda).call
+    }
     @wirowanie       = Guzik.new
     @ekstra_plukanie = Guzik.new
   end
@@ -97,11 +106,26 @@ end
 
 class Guzik < RubinowyStan
   state_machine :initial => :wylaczony do
-    before_transition :do => :log
-    after_failure :do => :fail
+    after_transition :do => :loga
+    after_failure :do => :faile
+
+    after_transition :do => :uruchom
+
     event :przelacz do
       transition :wylaczony => :zalaczony, :zalaczony => :wylaczony
     end
+  end
+  def loga akcja
+    log Event.new "#{state}"
+  end
+
+  def uruchom
+    @akcja.call
+  end
+
+  def initialize
+    @akcja = lambda { yield zalaczony? }
+    super()
   end
 end
 
@@ -159,15 +183,8 @@ class Dozowniki < RubinowyStan
     rand > 0
   end
 
-  def dozuj(gram, callback)
-    # @event = "dozuje #{gram} gram proszku"
-    # ja = self
-    @pralka.watki << Thread.new {
-      log Event.new "dozuje #{gram} gram proszku <"
-      sleep(3)
-      log Event.new 'nasypane <'
-      callback.fire_state_event(:nastepny)
-    }
+  def dozuj gram
+    log Event.new "dozuje #{gram} gram proszku <"
   end
 
   attr_reader :event
@@ -192,6 +209,8 @@ class RegulatorWody < RubinowyStan
 
     log Event.new "obenie w pralce: #{@pralka.beben.poziom_wody} litrow wody <"
     until dosc?
+      @pauza.lock
+      @pauza.unlock
       @pralka.beben.poziom_wody += 1
       sleep(0.1)
       putc '.'
@@ -222,14 +241,16 @@ class RegulatorWody < RubinowyStan
     super()
     @pralka = pralka
     @czujki = [:czujka1, :czujka2, :czujka3]
+    @pauza  = Mutex.new
   end
 
   attr_writer :poziom_wody
+  attr_reader :pauza
 end
 
 class KontrolerSilnika < RubinowyStan
   state_machine :initial => :zatrzymany do
-    before_transition :do => :log
+    before_transition :do => :loga
     after_failure     :do => :fail
 
     after_transition any => :kreci, :do => :krecenie_
@@ -244,6 +265,12 @@ class KontrolerSilnika < RubinowyStan
     end
     event :stop do
       transition any => :zatrzymany
+    end
+  end
+
+  def loga akcja
+    unless @pralka.panel.pauza.zalaczony?
+      log akcja
     end
   end
 
@@ -270,16 +297,12 @@ class KontrolerSilnika < RubinowyStan
   end
 
   def wirowanie_
-    log(Event.new "wiruje #{@pralka.wirowanie} obr/min")
+    log(Event.new "wiruje #{@pralka.wirowanie.wartosc} obr/min")
   end
 
   state_machine :krecenie, :initial => :zatrzymany, :namespace => 'krecenie' do
-    before_transition :do => :log
+    before_transition :do => :loga
     after_failure     :do => :fail
-
-    # def log
-    #   super.log Event.new krecenie_name
-    # end
 
     event :w_lewo do
       transition :czeka => :kreci_w_lewo
@@ -313,7 +336,10 @@ class KontrolerTemperatury < RubinowyStan
       transition :wylaczony => :zalaczony
     end
     event :wylacz do
-      transition :zalaczony => :wylaczony
+      transition any => :wylaczony
+    end
+    event :pauza do
+      transition :zalaczony => :pauza
     end
   end
 
@@ -333,12 +359,13 @@ class KontrolerTemperatury < RubinowyStan
     Thread.new {
       loop {
         # puts zalaczony? , @temperatura , @temperatura_zadana
-        if zalaczony?
+        if zalaczony? and @pralka.panel.pauza.wylaczony?
           log Event.new "grzeje (obecnie #{@temperatura}*C"
           until @temperatura > @temperatura_zadana or wylaczony?
             @temperatura += 10
             putc '+'
             sleep 0.1
+            break if @pralka.panel.pauza.zalaczony?
           end
           log Event.new 'ugrzane'
         end

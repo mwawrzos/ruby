@@ -9,7 +9,7 @@ class Lacznik
       @flowS = flow do
         @startBtn = button "Start", :width => 100
         @pauseBtn = button "Pauza" do
-          alert @programator.state
+          @programator.panel.pauza.przelacz
         end
         @stopBtn = button "Stop" do
           @programator.zalacz
@@ -55,7 +55,7 @@ class Lacznik
         para "Logi"
       end
 
-      @logi = stack(scroll: true, :height => 220)
+      @logi = stack(scroll: true, :height => 120)
       @startBtn.click {
         # niesamowitaFunkcja { funkcja }
         @logi.append(inscription strong funkcja)
@@ -65,7 +65,6 @@ class Lacznik
 
   def niesamowitaFunkcja
     @logStack.app do
-      # alert yield
       @logi.append{inscription strong yield}
     end
   end

@@ -52,6 +52,14 @@ class Program < RubinowyStan
     @masa = @pralka.beben.masa
     nastepny
   end
+
+  def lock
+    @cykl.pauzuj
+  end
+
+  def unlock
+    @cykl.odpauzuj
+  end
 end
 
 class Cykl < RubinowyStan
@@ -67,7 +75,7 @@ class Cykl < RubinowyStan
     after_transition any => :odwirowanie   , :do => :odwirowanie_
     after_transition any => :oczekiwanie   , :do => :koniec_
 
-    event :nastepny do
+    event :nastepny_etap do
       transition :oczekiwanie   => :dozowanie_p
       transition :dozowanie_p   => :dozowanie_w
       transition :dozowanie_w   => :pranie
@@ -79,10 +87,50 @@ class Cykl < RubinowyStan
     end
   end
 
+
+  def nastepny
+    @mutex.lock
+    @mutex.unlock
+    nastepny_etap
+  end
+
   def proszki
     log Event.new 'dozowanie proszkow'
-    @pralka.dozowniki.dozuj(@proszek, self)
+    @pralka.watki << Thread.new {
+      @pralka.dozowniki.dozuj @proszek
+
+      oczekuj 3
+
+      nastepny
+    }
+    # @pralka.dozowniki.dozuj(@proszek, self)
   end
+
+  def pauzuj
+    log Event.new 'pauzniety stan'
+    @mutex.lock
+    @pozostaly_czas = @docelowy_moment - Time.now
+
+  end
+
+  def odpauzuj
+    log Event.new "odpauzowano (pozostalo #{@pozostaly_czas})"
+    @docelowy_moment = Time.now + @pozostaly_czas
+    @mutex.unlock
+  end
+
+  def oczekuj czas
+    @docelowy_moment = Time.now + czas
+    sleep czas
+
+    # w razie pauzy mutex będzie chycony i przesunięty moment docelowy
+    @logger.debug "odczekane, #{@mutex.locked?}, #{@docelowy_moment}, #{@docelowy_moment - Time.now}"
+    @mutex.lock
+    diff = @docelowy_moment - Time.now
+    @mutex.unlock
+    sleep diff if diff > 0
+  end
+
   def woda
     log Event.new 'dozowanie wody'
     regulator_wody = @pralka.regulator_wody
@@ -93,7 +141,7 @@ class Cykl < RubinowyStan
       until regulator_wody.dosc?
         regulator_wody.zalacz
         @pralka.kontroler_silnika.krec
-        sleep 5.5
+        oczekuj 5.5
         @pralka.kontroler_silnika.stop
         if rand(10) > wilgoc
           wessane = (1 - wilgoc) * rand(@proszek / 5)
@@ -110,9 +158,13 @@ class Cykl < RubinowyStan
     log Event.new 'pranie'
     @pralka.kontroler_temperatury.zalacz
     @pralka.kontroler_silnika.krec
-    sleep 10
+    log Event.new 'czekam'
+    oczekuj 10
+    log Event.new 'poczekalem'
     @pralka.kontroler_silnika.stop
+    log Event.new 'wylaczylem silnik'
     @pralka.kontroler_temperatury.wylacz
+    log Event.new 'wylaczylem temp'
     nastepny
   end
 
@@ -129,7 +181,7 @@ class Cykl < RubinowyStan
     @pralka.watki << Thread.new {
       @pralka.regulator_wody.zalacz
       @pralka.kontroler_silnika.krec
-      sleep 12.34
+      oczekuj 12.34
       @pralka.kontroler_silnika.stop
       nastepny
     }
@@ -138,13 +190,14 @@ class Cykl < RubinowyStan
   def odwirowanie_
     log Event.new 'wirowanie'
     @pralka.kontroler_silnika.wiruj
-    sleep 6.78
+    oczekuj 6.78
     @pralka.kontroler_silnika.stop
     nastepny
   end
 
   def initialize(pralka)
     @pralka = pralka
+    @mutex = Mutex.new
     super()
   end
 

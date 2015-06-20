@@ -77,6 +77,15 @@ class Cykl < RubinowyStan
       transition :plukanie      => :oczekiwanie
       transition :odwirowanie   => :oczekiwanie
     end
+
+    event :pauza do
+      transition :dozowanie_p => :dppauza  , :dppauza => :dozowanie_p,
+                 :dozowanie_w => :dwpauza  , :dwpauza => :dozowanie_w,
+                 :pranie => :prpauza       , :prpauza => :pranie,
+                 :odpompowanie1 => :opauza , :opauza  => :odpompowanie1,
+                 :plukanie => :plpauza     , :plpauza => :plukanie,
+                 :odwirowanie => :odpauza  , :odpauza => :odwirowanie
+    end
   end
 
   def proszki

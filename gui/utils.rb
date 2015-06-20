@@ -10,7 +10,7 @@ class RubinowyStan
   def log(akcja)
     # alert funkcja
     @logger.info("#{akcja.event} #{self.class}")
-    $log_handler.call @logi.string
+    $log_handler.call @logi.string.strip
     @logi.reopen
   end
   def fail(akcja)
