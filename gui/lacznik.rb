@@ -67,12 +67,16 @@ class Lacznik
 
   def changeSoftenerLvl(lvl)
     # @plyn = lvl.to_s
-    @plyn.replace(strong(lvl.to_s))
+    @paramStack.app do
+      @plyn.replace(strong(lvl.to_s))
+    end
   end
 
   def changeWeightLvl(lvl)
     # @waga_prania = lvl.to_s
-    @waga.replace(strong(lvl.to_s))
+    @paramStack.app do
+      @waga_prania.replace(strong(lvl.to_s))
+    end
   end
 
   def initLogWindow(logStack)

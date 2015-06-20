@@ -164,7 +164,9 @@ end
 
 class Beben
   def masa
-    rand(6)
+    masa = rand(6)
+    @pralka.lacznik.changeWeightLvl masa
+    masa
   end
 
   def initialize pralka
