@@ -101,7 +101,7 @@ class Lacznik
         @heaterPic.remove()
         @heaterFlow.prepend {
           @heaterPic = image "pics/off-btn.png"
-        `}
+        }
       end
     end
   end
