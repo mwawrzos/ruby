@@ -9,7 +9,7 @@ class Program < RubinowyStan
 
     after_transition :oczekiwanie => :odczyty     , :do => :odczytaj
     after_transition :odczyty     => :pranie1     , :do => :pranie1
-    after_transition any          => :pranie2     , :do => :pranie2
+    after_transition :pranie1     => :pranie2     , :do => :pranie2
     after_transition any          => :oczekiwanie , :do => :zakonczenie_
 
     event :nastepny do
@@ -45,7 +45,7 @@ class Program < RubinowyStan
   end
 
   def tryb_rubinowy?
-    @pralka.panel.tryb_rubinowy.zalaczony?
+    @pralka.lacznik.getExtaOptions.include? "Inteligentne pranie"
   end
 
   def odczytaj
@@ -81,12 +81,16 @@ class Cykl < RubinowyStan
       transition :dozowanie_p   => :dozowanie_w
       transition :dozowanie_w   => :pranie
       transition :pranie        => :odpompowanie1
-      transition :odpompowanie1 => :plukanie
+      transition :odpompowanie1 => :plukanie      , :if => :plukanie?
+      transition :odpompowanie1 => :odpompowanie2
       transition :plukanie      => :odpompowanie2
       transition :odpompowanie2 => :odwirowanie   , :if => :odwirowanie?
-      transition :plukanie      => :oczekiwanie
+      transition :odpompowanie2 => :oczekiwanie
       transition :odwirowanie   => :oczekiwanie
     end
+  end
+  def plukanie?
+    @pralka.lacznik.getExtaOptions.include? "Plukanie"
   end
 
 
@@ -128,6 +132,7 @@ class Cykl < RubinowyStan
   end
 
   def oczekuj czas
+    czas /= 2 if @pralka.lacznik.getExtaOptions.include? "Pranie szybkie"
     @docelowy_moment = Time.now + czas
     sleep czas
 
