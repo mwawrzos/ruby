@@ -2,7 +2,7 @@ require 'programator'
 require 'ustawieniaGUI'
 require 'lacznik'
 
-Shoes.app(title: "RUBIN", width: 900, height: 720, resizable: false) do
+Shoes.app(title: "RUBIN", width: 900, height: 780, resizable: false) do
   @obj = UstawieniaGUI.new
   @lacznik = Lacznik.new(@programator)
 
@@ -33,10 +33,10 @@ Shoes.app(title: "RUBIN", width: 900, height: 720, resizable: false) do
       end
       @lacznik.initLockerFlow(@lockerFlow, @locker)
 
-      @stateStack = stack do
-        flow do
+      stack do
+        @stateFlow = flow do
           image "pics/speed72.png"
-          para "Maszyna stanowa"
+          para "Maszyna stanowa\n"
         end
         @parametersWindow = stack
         @lacznik.initParameters @parametersWindow
@@ -90,7 +90,7 @@ Shoes.app(title: "RUBIN", width: 900, height: 720, resizable: false) do
           @lacznik.setExtraOpt(@listExtraOpt)
         end
       end
-      stack :height => 210, :width => 510, :margin => 10, :margin_left => 0 do
+      stack :height => 280, :width => 510, :margin => 10, :margin_left => 0 do
         border steelblue, :strokewidth => 2, :curve => 8
         @logWindow = stack
         @lacznik.initLogWindow @logWindow
