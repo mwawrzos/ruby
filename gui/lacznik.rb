@@ -12,7 +12,7 @@ class Lacznik
     @buttonFlow.app do
       @flowS = flow do
         @startBtn = button "Start", :width => 100
-        @pauseBtn = button("Pauza"){
+        @pauseBtn = button("Pauza") {
           @programator.panel.pauza.przelacz
         }
 
@@ -24,9 +24,11 @@ class Lacznik
       end
     end
   end
+
   def initBtnImgFlow(flow)
     @btnImgFlow = flow
   end
+
   def initLockerFlow(lockerFlow, locker)
     @lockerFlow = lockerFlow
     @locker = locker
@@ -36,27 +38,35 @@ class Lacznik
     @paramStack = parameterStack
 
     @paramStack.app do
-      border cadetblue, :strokewidth => 2, :curve => 8, :height => 310
+      border cadetblue, :strokewidth => 2, :curve => 8, :height => 380
 
       flow :margin_left => 10 do
-        inscription "Poziom wody"
-        @poziom_wody = para strong "czekam..."
+        inscription strong "Aktualny stan: "
+        @aktualny_stan = para strong "czekam..."
       end
       flow :margin_left => 10 do
-        inscription "Proszek"
+        inscription "Proszek stan : "
         @proszek = para strong "czekam..."
       end
       flow :margin_left => 10 do
-        inscription "Plyn do plukania"
+        inscription "Plyn do plukania stan : "
         @plyn = para strong "czekam..."
       end
       flow :margin_left => 10 do
-        inscription "Waga prania"
+        inscription "Poziom wody : "
+        @poziom_wody = para strong "czekam..."
+      end
+      flow :margin_left => 10 do
+        inscription "Waga prania : "
         @waga_prania = para strong "czekam..."
       end
       flow :margin_left => 10 do
-        inscription "Temperatura"
+        inscription "Temperatura : "
         @aktualna_temp = para strong "czekam..."
+      end
+      flow :margin_left => 10 do
+        inscription "Obroty : "
+        @obroty = para strong "czekam..."
       end
       @heaterFlow = flow :margin_left => 10 do
         @heaterPic = image "pics/off-btn.png"
@@ -137,35 +147,44 @@ class Lacznik
 
   def changeTempLvl(lvl)
     @paramStack.app do
-      @aktualna_temp.replace(strong(lvl.to_s))
+      @aktualna_temp.replace(strong(lvl.to_s << " C"))
+    end
+  end
+
+  def changeTurnoverLvl(lvl)
+    @paramStack.app do
+      @obroty.replace(strong(lvl.to_s << " obr/min"))
     end
   end
 
   def changeWaterLvl(lvl)
     @paramStack.app do
-      # @poziom_wody.text = lvl.to_s
-      @poziom_wody.replace(strong(lvl.to_s))
+      @poziom_wody.replace(strong(lvl.to_s << " l"))
     end
   end
 
   def changeDetergentLvl(lvl)
     @paramStack.app do
-      # @proszek = lvl.to_s
-      @proszek.replace(strong(lvl.to_s))
+      @proszek.replace(strong(lvl.to_s << " g"))
     end
   end
 
   def changeSoftenerLvl(lvl)
-    # @plyn = lvl.to_s
     @paramStack.app do
-      @plyn.replace(strong(lvl.to_s))
+      @plyn.replace(strong(lvl.to_s << " ml"))
     end
   end
 
   def changeWeightLvl(lvl)
     # @waga_prania = lvl.to_s
     @paramStack.app do
-      @waga_prania.replace(strong(lvl.to_s))
+      @waga_prania.replace(strong(lvl.to_s << " kg"))
+    end
+  end
+
+  def changeWashingState(state)
+    @paramStack.app do
+      @aktualny_stan.replace(strong(state.to_s))
     end
   end
 
@@ -192,7 +211,7 @@ class Lacznik
 
       # niesamowitaFunkcja { funkcja }
       # @logi.append(inscription strong funkcja
-      @logi = stack(scroll: true, :height => 130)
+      @logi = stack(scroll: true, :height => 190)
     end
   end
 
