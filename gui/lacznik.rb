@@ -116,7 +116,7 @@ class Lacznik
     end
   end
 
-  def changeTempState(boolVal)
+  def changeWaterValveState(boolVal)
     if boolVal
       @paramStack.app do
         @tempPic.remove()
