@@ -30,20 +30,6 @@ class Lacznik
   def initLockerFlow(lockerFlow, locker)
     @lockerFlow = lockerFlow
     @locker = locker
-    # lockerFlow.app do
-    #   button "klik" do
-    #     @locker.remove()
-    #     lockerFlow.append {
-    #       @locker = image "pics/lockerLocked.png"
-    #     }
-    #   end
-    #   button "unlock" do
-    #     @locker.remove()
-    #     lockerFlow.append {
-    #       @locker = image "pics/lockerUnlocked.png"
-    #     }
-    #   end
-    # end
   end
 
   def initParameters(parameterStack)
@@ -69,8 +55,16 @@ class Lacznik
         @waga_prania = para strong "czekam..."
       end
       flow :margin_left => 10 do
+        inscription "Temperatura"
+        @aktualna_temp = para strong "czekam..."
+      end
+      @heaterFlow = flow :margin_left => 10 do
         @heaterPic = image "pics/off-btn.png"
         inscription "Stan : Grzalka"
+      end
+      @tempOptFlow = flow :margin_left => 10 do
+        @tempPic = image "pics/off-btn.png"
+        inscription "Stan : Zawory wody"
       end
     end
   end
@@ -94,35 +88,56 @@ class Lacznik
     end
   end
 
-  def changeState(boolVal, element)
+  def changeHeaterState(boolVal)
     if boolVal
       @paramStack.app do
-        element.remove
-        @paramStack.append{
-          element = image "pics/on-btn.png"
+        @heaterPic.remove()
+        @heaterFlow.prepend {
+          @heaterPic = image "pics/on-btn.png"
         }
       end
     else
       @paramStack.app do
-        element.remove
-        @paramStack.append{
-          element = image "pics/off-btn.png"
+        @heaterPic.remove()
+        @heaterFlow.prepend {
+          @heaterPic = image "pics/off-btn.png"
         }
       end
     end
   end
 
-  def changeHeaterState(boolVal)
-    changeState(boolVal, @heaterPic)
+  def changeTempState(boolVal)
+    if boolVal
+      @paramStack.app do
+        @tempPic.remove()
+        @tempOptFlow.prepend {
+          @tempPic = image "pics/on-btn.png"
+        }
+      end
+    else
+      @paramStack.app do
+        @tempPic.remove()
+        @tempOptFlow.prepend {
+          @tempPic = image "pics/off-btn.png"
+        }
+      end
+    end
   end
+
   def changePauseState(state)
     @btnImgFlow.app do
       images = @btnImgFlow.contents
-      if(state)
+      if (state)
         images[1].replace("pics/pause72-on.png")
       else
         images[1].replace("pics/pause72.png")
       end
+    end
+  end
+
+  def changeTempLvl(lvl)
+    @paramStack.app do
+      @aktualna_temp.replace(strong(lvl.to_s))
     end
   end
 
@@ -164,7 +179,7 @@ class Lacznik
       end
       @startBtn.click {
         # jesli potrzeba mozna zmienic na zmienna obiektu - dodac "@"
-        resultList = listOfLists.map { |list|
+        @resultList = listOfLists.map { |list|
           l = list.map { |(elemView, elem)|
             if (elemView.checked?)
               elem
@@ -172,13 +187,29 @@ class Lacznik
           }
           l.compact!
         }
-        alert "Temperatura : " << resultList[2].to_s << " Obroty : " << resultList[1].to_s << " Type: " << resultList[0].to_s << "Dodatkowe: " << resultList[3].to_s
+        alert "Temperatura : " << @resultList[2].to_s << " Obroty : " << @resultList[1].to_s << " Type: " << @resultList[0].to_s << "Dodatkowe: " << @resultList[3].to_s
       }
 
       # niesamowitaFunkcja { funkcja }
       # @logi.append(inscription strong funkcja
       @logi = stack(scroll: true, :height => 130)
     end
+  end
+
+  def getTemperature
+    return @resultList[2].flatten
+  end
+
+  def getTurnover
+    return @resultList[1].flatten
+  end
+
+  def getProgram
+    return @resultList[0].flatten
+  end
+
+  def getExtaOptions
+    return @resultList[3]
   end
 
   def setTemp(temp)

@@ -342,7 +342,7 @@ class KontrolerTemperatury < RubinowyStan
   state_machine :initial => :wylaczony do
     before_transition :do => :log
     after_failure     :do => :fail
-    before_transition :do => :notify
+    after_transition :do => :notify
 
     event :zalacz do
       transition :wylaczony => :zalaczony
@@ -354,10 +354,10 @@ class KontrolerTemperatury < RubinowyStan
       transition :zalaczony => :pauza
     end
 
-    def notify
-      @pralka.lacznik.changeHeaterState(zalaczony?)
-    end
-
+  end
+  def notify
+    log Event.new "turaja tuajajaaj"
+    @pralka.lacznik.changeHeaterState(zalaczony?)
   end
 
   def initialize pralka

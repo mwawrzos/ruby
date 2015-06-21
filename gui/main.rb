@@ -36,7 +36,7 @@ Shoes.app(title: "RUBIN", width: 900, height: 720, resizable: false) do
       @stateStack = stack do
         flow do
           image "pics/speed72.png"
-          para "State machine"
+          para "Maszyna stanowa"
         end
         @parametersWindow = stack
         @lacznik.initParameters @parametersWindow
