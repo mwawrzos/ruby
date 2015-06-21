@@ -29,6 +29,7 @@ class Programator < RubinowyStan
   end
 
   def initialize lacznik
+    @lacznik = lacznik
     @panel = PanelSterowania.new self
     @drzwi = Drzwi.new self
     @beben = Beben.new self
@@ -39,7 +40,6 @@ class Programator < RubinowyStan
     @wirowanie = Pokretelko.new { rand(800) + 400 }
     @temperatura = Pokretelko.new { rand(60) + 30 }
     @kontroler_temperatury = KontrolerTemperatury.new self
-    @lacznik = lacznik
 
     @watki = []
     super()
@@ -196,16 +196,23 @@ end
 class Dozowniki < RubinowyStan
   def initialize(pralka)
     @pralka = pralka
+    @proszku = rand 1000
+    @plynu = rand 1000
+    @pralka.lacznik.changeDetergentLvl @proszku
+    @pralka.lacznik.changeSoftenerLvl @plynu
     super()
   end
 
   def dosc?
-    rand = rand 10
-    rand > 0
+    @proszku > 100 and @plynu > 100
   end
 
   def dozuj gram
     log Event.new "dozuje #{gram} gram proszku <"
+    @proszku -= gram
+    @plynu -= gram
+    @pralka.lacznik.changeDetergentLvl @proszku
+    @pralka.lacznik.changeSoftenerLvl @plynu
   end
 
   attr_reader :event

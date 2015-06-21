@@ -113,7 +113,7 @@ class Lacznik < RubinowyStan
         element.remove
         @paramStack.append{
           element = image "pics/off-btn.png"
-        }
+        `}
       end
     end
   end
