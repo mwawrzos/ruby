@@ -16,7 +16,7 @@ Shoes.app(title: "RUBIN", width: 900, height: 720, resizable: false) do
   end
   @panelStack = flow :margin => 20 do
     stack :width => 320 do
-      flow do
+      @btnImgFlow = flow do
         # border teal, :strokewidth => 2
         image "pics/play96.png"
         image "pics/pause72.png"
@@ -25,11 +25,14 @@ Shoes.app(title: "RUBIN", width: 900, height: 720, resizable: false) do
       end
       @stackButton = stack
       @lacznik.initButtonFlow(@stackButton)
-      flow do
+      @lockerFlow = flow do
         image "pics/clock72.png"
         para "Czas do konca : "
         para strong @obj.timer
+        @locker = image "pics/lockerUnlocked.png"
       end
+      @lacznik.initLockerFlow(@lockerFlow, @locker)
+
       @stateStack = stack do
         flow do
           image "pics/speed72.png"
