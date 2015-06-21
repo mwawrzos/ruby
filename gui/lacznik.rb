@@ -1,5 +1,5 @@
 require 'programator'
-class Lacznik
+class Lacznik < RubinowyStan
   # @programator = Programator.new (lambda { |str| niesamowitaFunkcja str })
   @pauseState = false
 
@@ -95,6 +95,7 @@ class Lacznik
   end
 
   def changeState(boolVal, element)
+    log Event.new "tirlitirli #{boolVal}"
     if boolVal
       @paramStack.app do
         element.remove

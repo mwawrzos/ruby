@@ -364,10 +364,11 @@ class KontrolerTemperatury < RubinowyStan
       transition :zalaczony => :pauza
     end
 
-    def notify
-      @pralka.lacznik.changeHeaterState(zalaczony?)
-    end
+  end
 
+  def notify
+    log Event.new "tuputup"
+    @pralka.lacznik.changeHeaterState(zalaczony?)
   end
 
   def initialize pralka
