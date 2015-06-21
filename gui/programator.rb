@@ -385,6 +385,7 @@ class KontrolerTemperatury < RubinowyStan
       loop {
         until @temperatura < 20
           @temperatura -= rand 5
+          @pralka.lacznik.changeTempLvl @temperatura
           sleep 0.7
         end
       }
