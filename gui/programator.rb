@@ -232,7 +232,7 @@ class RegulatorWody < RubinowyStan
     until dosc?
       @pauza.lock
       @pauza.unlock
-      @pralka.beben.poziom_wody += 1
+      @pralka.beben.poziom_wody += 10
       sleep(0.1)
       putc '.'
     end
@@ -367,8 +367,8 @@ class KontrolerTemperatury < RubinowyStan
   end
 
   def notify
+    log Event.new @pralka.lacznik.changeHeaterState(zalaczony?).to_s
     log Event.new "tuputup"
-    @pralka.lacznik.changeHeaterState(zalaczony?)
   end
 
   def initialize pralka

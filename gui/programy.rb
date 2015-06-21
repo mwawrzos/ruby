@@ -157,6 +157,7 @@ class Cykl < RubinowyStan
   def pranie_
     log Event.new 'pranie'
     @pralka.kontroler_temperatury.zalacz
+    log Event.new 'asdlkfjasdlfjasdflkjasdf;lkjpranie'
     @pralka.kontroler_silnika.krec
     log Event.new 'czekam'
     oczekuj 10

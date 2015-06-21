@@ -49,6 +49,7 @@ class Lacznik < RubinowyStan
   def initParameters(parameterStack)
     @paramStack = parameterStack
 
+    me = self
     @paramStack.app do
       border cadetblue, :strokewidth => 2, :curve => 8, :height => 310
 
@@ -69,10 +70,14 @@ class Lacznik < RubinowyStan
         @waga_prania = para strong "czekam..."
       end
       flow :margin_left => 10 do
-        @heaterPic = image "pics/off-btn.png"
+        me.setHeaterPic image "pics/off-btn.png"
         inscription "Stan : Grzalka"
       end
     end
+  end
+
+  def setHeaterPic pic
+    @heaterPic = pic
   end
 
   def changeLockerState(boolVal)
@@ -95,7 +100,7 @@ class Lacznik < RubinowyStan
   end
 
   def changeState(boolVal, element)
-    log Event.new "tirlitirli #{boolVal}"
+    #log Event.new "tirlitirli #{@paramStack.class} #{@lockerFlow.class} #{element.nil?}"
     if boolVal
       @paramStack.app do
         element.remove
