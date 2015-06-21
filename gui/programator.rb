@@ -134,12 +134,8 @@ class Guzik < RubinowyStan
 end
 
 class Pokretelko < RubinowyStan
-  def wartosc
-    @wartosc.call
-  end
 
   def initialize
-    @wartosc = lambda { yield }
     super()
   end
 
@@ -401,8 +397,8 @@ class KontrolerTemperatury < RubinowyStan
       loop {
         # puts zalaczony? , @temperatura , @temperatura_zadana
         if zalaczony? and @pralka.panel.pauza.wylaczony?
-          log Event.new "grzeje (obecnie #{@temperatura}*C"
-          until @temperatura > @temperatura_zadana or wylaczony?
+          temperatura_zadana = @pralka.temperatura.wartosc[0]
+          until @temperatura > temperatura_zadana.to_i or wylaczony?
             @temperatura += 10
             putc '+'
             sleep 0.1

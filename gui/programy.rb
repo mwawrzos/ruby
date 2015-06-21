@@ -71,6 +71,7 @@ class Cykl < RubinowyStan
     after_transition any => :dozowanie_w   , :do => :woda
     after_transition any => :pranie        , :do => :pranie_
     after_transition any => :odpompowanie1 , :do => :odpompowanie
+    after_transition any => :odpompowanie2 , :do => :odpompowanie
     after_transition any => :plukanie      , :do => :plukanie_
     after_transition any => :odwirowanie   , :do => :odwirowanie_
     after_transition any => :oczekiwanie   , :do => :koniec_
@@ -81,7 +82,8 @@ class Cykl < RubinowyStan
       transition :dozowanie_w   => :pranie
       transition :pranie        => :odpompowanie1
       transition :odpompowanie1 => :plukanie
-      transition :plukanie      => :odwirowanie   , :if => :odwirowanie?
+      transition :plukanie      => :odpompowanie2
+      transition :odpompowanie2 => :odwirowanie   , :if => :odwirowanie?
       transition :plukanie      => :oczekiwanie
       transition :odwirowanie   => :oczekiwanie
     end
@@ -95,7 +97,8 @@ class Cykl < RubinowyStan
   end
 
   def proszki
-    log Event.new 'dozowanie proszkow'
+    notify 'dozowanie proszkow'
+
     @pralka.watki << Thread.new {
       @pralka.dozowniki.dozuj @proszek
 
@@ -104,6 +107,11 @@ class Cykl < RubinowyStan
       nastepny
     }
     # @pralka.dozowniki.dozuj(@proszek, self)
+  end
+
+  def notify text
+    log Event.new text
+    @pralka.lacznik.changeWashingState text
   end
 
   def pauzuj
@@ -132,7 +140,7 @@ class Cykl < RubinowyStan
   end
 
   def woda
-    log Event.new 'dozowanie wody'
+    notify 'dozowanie wody'
     regulator_wody = @pralka.regulator_wody
     regulator_wody.poziom_wody = 1
 
@@ -155,7 +163,7 @@ class Cykl < RubinowyStan
   end
 
   def pranie_
-    log Event.new 'pranie'
+    notify 'pranie'
     @pralka.kontroler_temperatury.zalacz
     log Event.new 'asdlkfjasdlfjasdflkjasdf;lkjpranie'
     @pralka.kontroler_silnika.krec
@@ -170,7 +178,7 @@ class Cykl < RubinowyStan
   end
 
   def odpompowanie
-    log Event.new 'odpompowywanie'
+    notify 'odpompowywanie'
     @pralka.watki << Thread.new {
       @pralka.wlacz_pompe_odsrodkowa
       nastepny
@@ -178,7 +186,7 @@ class Cykl < RubinowyStan
   end
 
   def plukanie_
-    log Event.new 'plukanie'
+    notify 'plukanie'
     @pralka.watki << Thread.new {
       @pralka.regulator_wody.zalacz
       @pralka.kontroler_silnika.krec
@@ -189,7 +197,7 @@ class Cykl < RubinowyStan
   end
 
   def odwirowanie_
-    log Event.new 'wirowanie'
+    notify 'wirowanie'
     @pralka.kontroler_silnika.wiruj
     oczekuj 6.78
     @pralka.kontroler_silnika.stop
