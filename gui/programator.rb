@@ -286,6 +286,7 @@ class KontrolerSilnika < RubinowyStan
     after_transition any => :kreci, :do => :krecenie_
     after_transition :kreci => any, :do => :nie_krec
     after_transition any => :wiruje, :do => :wirowanie_
+    after_transition any => :zatrzymany, :do => :zatrzymaj
 
     event :krec do
       transition any => :kreci
@@ -296,6 +297,10 @@ class KontrolerSilnika < RubinowyStan
     event :stop do
       transition any => :zatrzymany
     end
+  end
+
+  def zatrzymaj
+    stop_krecenie
   end
 
   def loga akcja
@@ -327,12 +332,18 @@ class KontrolerSilnika < RubinowyStan
   end
 
   def wirowanie_
+    @pralka.lacznik.changeTurnoverLvl @pralka.wirowanie.wartosc
     log(Event.new "wiruje #{@pralka.wirowanie.wartosc} obr/min")
   end
 
   state_machine :krecenie, :initial => :zatrzymany, :namespace => 'krecenie' do
     before_transition :do => :loga
     after_failure     :do => :fail
+
+    after_transition any => :kreci_w_lewo, :do => :loglewo
+    after_transition any => :kreci_w_prawo, :do => :logprawo
+    after_transition any => :czeka, :do => :logstop
+    after_transition any => :zatrzymany, :do => :logstop
 
     event :w_lewo do
       transition :czeka => :kreci_w_lewo
@@ -349,6 +360,18 @@ class KontrolerSilnika < RubinowyStan
     event :start do
       transition :zatrzymany => :kreci_w_lewo
     end
+  end
+
+  def logstop
+    @pralka.lacznik.changeTurnoverLvl 0
+  end
+
+  def logprawo
+    @pralka.lacznik.changeTurnoverLvl 15
+  end
+
+  def loglewo
+    @pralka.lacznik.changeTurnoverLvl -15
   end
 
   def initialize pralka
@@ -404,7 +427,7 @@ class KontrolerTemperatury < RubinowyStan
             sleep 0.1
             break if @pralka.panel.pauza.zalaczony?
           end
-          log Event.new 'ugrzane'
+          # log Event.new 'ugrzane'
         end
         sleep 1
       }

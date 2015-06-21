@@ -211,6 +211,7 @@ class Cykl < RubinowyStan
   end
 
   def koniec_
+    notify 'koniec'
     @callback.nastepny
   end
 
@@ -278,3 +279,7 @@ class Delikatne < Program
     @pralka.drzwi.odblokuj
   end
 end
+
+# E:\uczelnia\RUBIN\lib>rake state_machine:draw FILE=programator.rb,programy.rb CL
+# ASS=Programator,Guzik,Drzwi,RegulatorWody,KontrolerSilnika,KontrolerTemperatury,
+#     Program,Cykl
