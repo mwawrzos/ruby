@@ -31,7 +31,7 @@ class Programator < RubinowyStan
   def initialize lacznik
     @lacznik = lacznik
     @panel = PanelSterowania.new self
-    @drzwi = Drzwi.new self
+    @drzwi = Drzwi.new
     @beben = Beben.new self
     @dozowniki = Dozowniki.new self
     @regulator_wody = RegulatorWody.new self
@@ -146,7 +146,6 @@ class Drzwi < RubinowyStan
   state_machine :initial => :zamkniete do
     before_transition :do => :log
     after_failure :do => :fail
-    after_transition :do => :notify
 
     event :zamknij do
       transition :otwarte => :zamkniete
@@ -160,15 +159,6 @@ class Drzwi < RubinowyStan
     event :odblokuj do
       transition :zablokowane => :zamkniete
     end
-  end
-
-  def notify
-    @pralka.lacznik.changeLockerState zablokowane?
-  end
-
-  def initialize pralka
-    @pralka = pralka
-    super()
   end
 end
 
@@ -239,7 +229,7 @@ class RegulatorWody < RubinowyStan
     until dosc?
       @pauza.lock
       @pauza.unlock
-      @pralka.beben.poziom_wody += 10
+      @pralka.beben.poziom_wody += 1
       sleep(0.1)
       putc '.'
     end
@@ -372,10 +362,9 @@ class KontrolerTemperatury < RubinowyStan
     end
 
   end
-
   def notify
-    log Event.new @pralka.lacznik.changeHeaterState(zalaczony?).to_s
-    log Event.new "tuputup"
+    log Event.new "turaja tuajajaaj"
+    @pralka.lacznik.changeHeaterState(zalaczony?)
   end
 
   def initialize pralka
