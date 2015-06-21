@@ -37,8 +37,8 @@ class Programator < RubinowyStan
     @regulator_wody = RegulatorWody.new self
     @kontroler_silnika = KontrolerSilnika.new self
     @filtry = Filtry.new
-    @wirowanie = Pokretelko.new { rand(800) + 400 }
-    @temperatura = Pokretelko.new { rand(60) + 30 }
+    @wirowanie = Pokretelko.new { @lacznik.getTurnover }
+    @temperatura = Pokretelko.new { @lacznik.getTemperature }
     @kontroler_temperatury = KontrolerTemperatury.new self
 
     @watki = []
