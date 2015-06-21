@@ -187,10 +187,10 @@ class Lacznik
       @aktualny_stan.replace(strong(state.to_s))
     end
   end
-
   def initLogWindow(logStack)
     listOfLists = [@programs, @turnoverlist, @templist, @options]
     @logStack = logStack
+    me = self
     @logStack.app do
       flow do
         image "pics/logi.png"
@@ -198,7 +198,7 @@ class Lacznik
       end
       @startBtn.click {
         # jesli potrzeba mozna zmienic na zmienna obiektu - dodac "@"
-        @resultList = listOfLists.map { |list|
+        @resultList = me.resultList = listOfLists.map { |list|
           l = list.map { |(elemView, elem)|
             if (elemView.checked?)
               elem
@@ -253,6 +253,7 @@ class Lacznik
     end
   end
 
+  attr_writer :resultList
 end
 
 def funkcja

@@ -37,8 +37,8 @@ class Programator < RubinowyStan
     @regulator_wody = RegulatorWody.new self
     @kontroler_silnika = KontrolerSilnika.new self
     @filtry = Filtry.new
-    @wirowanie = Pokretelko.new { @lacznik.getTurnover }
-    @temperatura = Pokretelko.new { @lacznik.getTemperature }
+    @wirowanie = Pokretelko.new { 0 }
+    @temperatura = Pokretelko.new { 0 }
     @kontroler_temperatury = KontrolerTemperatury.new self
 
     @watki = []
@@ -46,6 +46,8 @@ class Programator < RubinowyStan
   end
 
   def uruchom
+    @wirowanie.wartosc = @lacznik.getTurnover
+    @temperatura.wartosc = @lacznik.getTemperature
     @panel.program(0).nastepny
   end
 
@@ -140,6 +142,8 @@ class Pokretelko < RubinowyStan
     @wartosc = lambda { yield }
     super()
   end
+
+  attr_accessor :wartosc
 end
 
 class Drzwi < RubinowyStan
@@ -234,6 +238,7 @@ class RegulatorWody < RubinowyStan
   end
 
   def otworz_zawor
+    @pralka.lacznik.changeWaterValveState true
 
     log Event.new "obenie w pralce: #{@pralka.beben.poziom_wody} litrow wody <"
     until dosc?
@@ -246,6 +251,7 @@ class RegulatorWody < RubinowyStan
     puts ''
     log Event.new "obenie w pralce: #{@pralka.beben.poziom_wody} litrow wody <"
 
+    @pralka.lacznik.changeWaterValveState false
     wylacz
   end
 
